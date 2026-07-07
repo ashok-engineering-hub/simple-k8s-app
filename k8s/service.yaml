@@ -9,4 +9,4 @@ spec:
   ports:
     - port: 3000
       targetPort: 3000
-      nodePort: 30080
+      nodePort: 30001   # ✔ KillerKoda auto-exposed port 30000 → 30010

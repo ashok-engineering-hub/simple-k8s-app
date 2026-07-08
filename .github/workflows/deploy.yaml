@@ -16,11 +16,6 @@ jobs:
         with:
           version: 'latest'
 
-      - name: Create kubeconfig file
-        run: |
-          echo "${{ secrets.KUBECONFIG_DATA }}" > kubeconfig
-          chmod 600 kubeconfig
-
       - name: Apply Kubernetes manifests
         env:
           KUBECONFIG: kubeconfig

@@ -2,46 +2,60 @@
 
 set -e
 
-# Create non-root user if it doesn't exist
-if ! id githubrunner &>/dev/null; then
-    useradd -m -s /bin/bash githubrunner
-    echo "User githubrunner created."
-else
-    echo "User githubrunner already exists."
+RUNNER_USER="githubrunner"
+REPO_URL="https://github.com/ashok-engineering-hub/simple-k8s-app"
+RUNNER_NAME="controlplane"
+GITHUB_PAT="PAT"
+RUNNER_TOKEN=$(curl -s -X POST   -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_PAT"  https://api.github.com/repos/ashok-engineering-hub/simple-k8s-app/actions/
+runners/registration-token | jq -r .token)
+
+echo "Creating runner user..."
+
+if ! id "$RUNNER_USER" >/dev/null 2>&1; then
+    useradd -m -s /bin/bash "$RUNNER_USER"
 fi
 
-# Execute remaining steps as githubrunner
-su - githubrunner << 'EOF'
+echo "Configuring Kubernetes access..."
+
+mkdir -p /home/$RUNNER_USER/.kube
+
+if [ -f /root/.kube/config ]; then
+    cp /root/.kube/config /home/$RUNNER_USER/.kube/config
+    chown -R $RUNNER_USER:$RUNNER_USER /home/$RUNNER_USER/.kube
+    chmod 600 /home/$RUNNER_USER/.kube/config
+fi
+
+echo "Installing GitHub Actions runner..."
+
+su - "$RUNNER_USER" << EOF
 
 set -e
 
 mkdir -p ~/actions-runner
 cd ~/actions-runner
 
-echo "Downloading GitHub Actions Runner..."
-
 curl -o actions-runner-linux-x64-2.335.1.tar.gz -L \
 https://github.com/actions/runner/releases/download/v2.335.1/actions-runner-linux-x64-2.335.1.tar.gz
 
-echo "Verifying checksum..."
-
 echo "4ef2f25285f0ae4477f1fe1e346db76d2f3ebf03824e2ddd1973a2819bf6c8cf  actions-runner-linux-x64-2.335.1.tar.gz" | sha256sum -c
-
-echo "Extracting package..."
 
 tar xzf actions-runner-linux-x64-2.335.1.tar.gz
 
-echo "Configuring runner..."
+chmod +x config.sh
+chmod +x run.sh
+chmod +x bin/*
 
 ./config.sh \
-  --url https://github.com/ashok-engineering-hub \
-  --token CHW7TJ3GXTD3POOHSNKR2MDKJYRY4 \
+  --url "$REPO_URL" \
+  --token "$RUNNER_TOKEN" \
   --unattended \
-  --name controlplane \
+  --name "$RUNNER_NAME" \
   --labels self-hosted,Linux,X64
 
-echo "Starting runner..."
+echo "Testing Kubernetes access..."
+kubectl get nodes
 
+echo "Starting runner..."
 ./run.sh
 
 EOF

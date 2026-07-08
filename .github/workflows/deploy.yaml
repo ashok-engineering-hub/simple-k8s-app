@@ -22,8 +22,6 @@ jobs:
           kubectl apply -f k8s/service.yaml
 
       - name: Verify deployment
-        env:
-          KUBECONFIG: kubeconfig
         run: |
           kubectl get pods
           kubectl get svc

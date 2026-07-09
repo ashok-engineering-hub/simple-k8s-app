@@ -8,11 +8,11 @@ on:
   workflow_dispatch:
 
 env:
-  IMAGE_NAME: simple-k8s-app
+  IMAGE_NAME: nodejs
 
 jobs:
   docker:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Source
@@ -34,5 +34,5 @@ jobs:
           file: ./app/Dockerfile
           push: true
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/simple-k8s-app:latest
-            ${{ secrets.DOCKER_USERNAME }}/simple-k8s-app:${{ github.run_number }}
+            ${{ secrets.DOCKER_USERNAME }}/nodejs:latest
+            ${{ secrets.DOCKER_USERNAME }}/nodejs:${{ github.run_number }}

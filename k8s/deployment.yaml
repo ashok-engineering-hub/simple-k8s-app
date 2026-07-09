@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: simple-k8s-app
-          image: ashokduraisamy/ashok-k8s:v1
+          image: ashokduraisamy/nodejs:latest
           ports:
             - containerPort: 3000
           resources:
